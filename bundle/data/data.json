@@ -1,0 +1,12 @@
+[
+  {
+    "name":"nick",
+    "endPoint":"GET",
+    "role":"user"
+  },
+  {
+    "name":"torrin",
+    "endPoint":"GET, POST, PUSH, PUT, DELETE",
+    "role":"admin"
+  }
+]
