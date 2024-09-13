@@ -1,4 +1,4 @@
-package controllers
+package permissions
 
 import (
 	"github.com/gin-gonic/gin"
@@ -6,25 +6,27 @@ import (
 	"opa-test/models"
 )
 
-func CreateUser(db *gorm.DB) func(ctx *gin.Context) {
+func CreatePermission(db *gorm.DB) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		var user models.User
-		err := ctx.BindJSON(&user)
+		var perm models.Permission
+
+		err := ctx.BindJSON(&perm)
 		if err != nil {
 			ctx.JSON(400, gin.H{
 				"error": "error",
 			})
 			return
 		}
-		result := db.Create(&user)
+
+		result := db.Create(&perm)
 		if result.Error != nil {
 			ctx.JSON(400, gin.H{
-				"error": "Failed to create user",
+				"error": "Failed to create permission",
 			})
 		}
 		ctx.JSON(200, gin.H{
-			"bundle": "OK",
-			"user":   user,
+			"data": perm,
 		})
+
 	}
 }
