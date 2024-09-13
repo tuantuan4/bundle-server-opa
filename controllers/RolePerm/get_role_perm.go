@@ -9,14 +9,13 @@ import (
 )
 
 type RolePermRequest struct {
-	RoleId uint   `json:"role_id"`
+	RoleId []uint `json:"role_id"`
 	Url    string `json:"url"`
 	Method string `json:"method"`
 }
 
 func GetRolePerm(db *gorm.DB) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-
 		var request RolePermRequest
 
 		err := ctx.BindJSON(&request)
@@ -27,7 +26,7 @@ func GetRolePerm(db *gorm.DB) func(ctx *gin.Context) {
 			return
 		}
 		var method, url, id_role = request.Method, request.Url, request.RoleId
-		if method == "" || url == "" || id_role == 0 {
+		if method == "" || url == "" || len(id_role) == 0 {
 			ctx.JSON(400, gin.H{
 				"message": "Method and URL and ID_ROLE is required",
 			})
@@ -43,7 +42,7 @@ func GetRolePerm(db *gorm.DB) func(ctx *gin.Context) {
 
 		var rolePerm models.RolePermission
 
-		if err := db.Where("role_id = ? AND permission_id = ?", id_role, perm.ID).First(&rolePerm).Error; err != nil {
+		if err := db.Where("role_id IN ? AND permission_id = ?", id_role, perm.ID).First(&rolePerm).Error; err != nil {
 			ctx.JSON(http.StatusOK, gin.H{
 				"result": "false",
 			})

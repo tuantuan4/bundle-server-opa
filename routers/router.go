@@ -7,6 +7,7 @@ import (
 	"opa-test/controllers/permissions"
 	"opa-test/controllers/roles"
 	"opa-test/controllers/users"
+	"opa-test/middleware"
 )
 
 func DefineRouter(r *gin.Engine, db *gorm.DB) {
@@ -34,7 +35,7 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 	role_permission := v.Group("/rolePermission")
 	{
 		role_permission.POST("", RolePerm.CreateRolePerm(db))
-		role_permission.POST("/checkPermission", RolePerm.GetRolePerm(db))
+		role_permission.Use(middleware.BasicAuth(middleware.ConvertBasicAuth())).POST("/checkPermission", RolePerm.GetRolePerm(db))
 		role_permission.GET("/permissions/:id_role", RolePerm.GetListPermByRoleId(db))
 		role_permission.GET("", RolePerm.GetAll(db))
 	}
