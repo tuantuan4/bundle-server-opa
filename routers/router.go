@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"opa-test/controllers/RolePerm"
+	"opa-test/controllers/UserRole"
 	"opa-test/controllers/permissions"
 	"opa-test/controllers/roles"
 	"opa-test/controllers/users"
@@ -38,6 +39,11 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 		role_permission.Use(middleware.BasicAuth(middleware.ConvertBasicAuth())).POST("/checkPermission", RolePerm.GetRolePerm(db))
 		role_permission.GET("/permissions/:id_role", RolePerm.GetListPermByRoleId(db))
 		role_permission.GET("", RolePerm.GetAll(db))
+	}
+	user_role := v.Group("/userRole")
+	{
+		user_role.Use(middleware.BasicAuth(middleware.ConvertBasicAuth())).POST("/:role_id", UserRole.CreateUserRole(db))
+		user_role.Use(middleware.BasicAuth(middleware.ConvertBasicAuth())).GET("", UserRole.GetUserRole(db))
 	}
 }
 

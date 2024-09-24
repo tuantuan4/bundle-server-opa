@@ -15,7 +15,13 @@ func ConnectionDatabase() (db *gorm.DB) {
 	} else {
 		fmt.Println("connect DB done")
 	}
-	db.AutoMigrate(models.Role{}, models.Permission{}, models.RolePermission{})
+	err1 := db.AutoMigrate(models.UserRole{}, models.Role{},
+		models.Permission{},
+		models.RolePermission{})
+	if err1 != nil {
+		fmt.Println("Migrate DB Error", err.Error())
+		return db
+	}
 
 	return db
 }
