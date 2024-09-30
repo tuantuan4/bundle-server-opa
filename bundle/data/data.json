@@ -1,12 +1,68 @@
-[
-  {
-    "name":"nick",
-    "endPoint":"GET",
-    "role":"user"
+{
+  "user_roles": {
+    "sunny": [
+      "1",
+      "2"
+    ],
+    "bob": [
+      "2",
+      "3",
+      "4"
+    ],
+    "eve": [
+      "4"
+    ]
   },
-  {
-    "name":"torrin",
-    "endPoint":"GET, POST, PUSH, PUT, DELETE",
-    "role":"admin"
+  "role_grants": {
+    "4": [
+      {
+        "method": "GET",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "GET",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "POST",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "POST",
+        "url": "api/v1/product"
+      }
+    ],
+    "2": [
+      {
+        "method": "GET",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "GET",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "PUT",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "PUT",
+        "url": "api/v1/product"
+      }
+    ],
+    "3": [
+      {
+        "method": "GET",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "PUT",
+        "url": "api/v1/product"
+      },
+      {
+        "method": "PUT1122333",
+        "url": "api/v1/product"
+      }
+    ]
   }
-]
+}

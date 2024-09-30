@@ -95,9 +95,13 @@ func GetAll(db *gorm.DB) func(ctx *gin.Context) {
 			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		rolePermissionMap := make(map[uint][]uint)
+		rolePermissionMap := make(map[uint][]models.Permission)
 		for _, rp := range result {
-			rolePermissionMap[rp.RoleId] = append(rolePermissionMap[rp.RoleId], rp.PermissionId)
+			var perm models.Permission
+			if err := db.Where("id = ?", rp.PermissionId).First(&perm).Error; err != nil {
+				continue
+			}
+			rolePermissionMap[rp.RoleId] = append(rolePermissionMap[rp.RoleId], perm)
 		}
 		ctx.JSON(200, gin.H{"data": rolePermissionMap})
 	}

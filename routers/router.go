@@ -14,7 +14,7 @@ import (
 func DefineRouter(r *gin.Engine, db *gorm.DB) {
 	v := r.Group("/api/v1/admin")
 	{
-		v.GET("/json", users.GetFileJson(db))
+		//v.GET("/json", users.GetFileJson(db))
 		//v.GET("/targz", controllers.GetFileTarGz(db)) //ver1
 		v.GET("/targz", users.NotifyUpdate(db)) //ver2
 		v.POST("/user", users.CreateUser(db))
