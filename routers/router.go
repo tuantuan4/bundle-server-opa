@@ -39,6 +39,7 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 		role_permission.Use(middleware.BasicAuth(middleware.ConvertBasicAuth())).POST("/checkPermission", RolePerm.GetRolePerm(db))
 		role_permission.GET("/permissions/:id_role", RolePerm.GetListPermByRoleId(db))
 		role_permission.GET("", RolePerm.GetAll(db))
+		role_permission.GET("/exportJson", RolePerm.GetFileJsonData(db))
 	}
 	user_role := v.Group("/userRole")
 	{
