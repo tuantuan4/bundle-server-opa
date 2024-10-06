@@ -129,7 +129,7 @@ func NotifyUpdate(db *gorm.DB) func(ctx *gin.Context) {
 					return
 				}
 				log.Println("Error:", err)
-			case <-time.After(3 * time.Second):
+			case <-time.After(8 * time.Second):
 				ctx.JSON(304, gin.H{
 					"error": "timeout",
 				})

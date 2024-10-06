@@ -177,6 +177,6 @@ func GetFileJsonData(db *gorm.DB) func(ctx *gin.Context) {
 }
 
 type ResponseData struct {
-	UseRoles   map[string][]uint            `json:"use_roles"`
+	UseRoles   map[string][]uint            `json:"user_roles"`
 	RoleGrants map[uint][]dto.PermissionDto `json:"role_grants"`
 }
