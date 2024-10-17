@@ -26,12 +26,14 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 		role.GET("", roles.GetAllRole(db))
 		role.GET("/get", roles.GetRoleById(db))
 		role.POST("", roles.CreateRole(db))
+		role.POST("/count", roles.CreateRandomRoles(db))
 	}
 	perm := v.Group("/permissions")
 	{
 		perm.GET("", permissions.GetAllPerm(db))
 		perm.GET("/:id_perm", permissions.GetPermById(db))
 		perm.POST("", permissions.CreatePermission(db))
+		perm.POST("/count", permissions.CreateRandomPermissions(db))
 	}
 	role_permission := v.Group("/rolePermission")
 	{
@@ -40,6 +42,7 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 		role_permission.GET("/permissions/:id_role", RolePerm.GetListPermByRoleId(db))
 		role_permission.GET("", RolePerm.GetAll(db))
 		role_permission.GET("/exportJson", RolePerm.GetFileJsonData(db))
+		role_permission.POST("/count", RolePerm.CreateRandomRolePerm(db))
 	}
 	user_role := v.Group("/userRole")
 	{
