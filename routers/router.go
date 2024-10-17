@@ -48,6 +48,7 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 	{
 		user_role.Use(middleware.BasicAuth(middleware.ConvertBasicAuth())).POST("/:role_id", UserRole.CreateUserRole(db))
 		user_role.Use(middleware.BasicAuth(middleware.ConvertBasicAuth())).GET("", UserRole.GetUserRole(db))
+		user_role.POST("/count", UserRole.CreateUserRoleRandom(db))
 	}
 }
 
