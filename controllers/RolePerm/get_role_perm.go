@@ -7,16 +7,15 @@ import (
 	"gorm.io/gorm"
 	"io/ioutil"
 	"net/http"
-	"opa-test/dto"
 	"opa-test/models"
 	"os"
 	"strconv"
 )
 
 type RolePermRequest struct {
-	RoleId []uint `json:"role_id"`
-	Url    string `json:"url"`
-	Method string `json:"method"`
+	Username string `json:"username"`
+	Url      string `json:"url"`
+	Method   string `json:"method"`
 }
 
 func GetRolePerm(db *gorm.DB) func(ctx *gin.Context) {
@@ -30,10 +29,10 @@ func GetRolePerm(db *gorm.DB) func(ctx *gin.Context) {
 			})
 			return
 		}
-		var method, url, id_role = request.Method, request.Url, request.RoleId
-		if method == "" || url == "" || len(id_role) == 0 {
+		var method, url, username = request.Method, request.Url, request.Username
+		if method == "" || url == "" || username == "" {
 			ctx.JSON(400, gin.H{
-				"message": "Method and URL and ID_ROLE is required",
+				"message": "Method and URL and username is required",
 			})
 		}
 		var perm models.Permission
@@ -44,10 +43,20 @@ func GetRolePerm(db *gorm.DB) func(ctx *gin.Context) {
 			})
 			return
 		}
-
+		var userRoles []models.UserRole
+		if err := db.Where("username = ?", username).Find(&userRoles).Error; err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "username is not found role",
+			})
+			return
+		}
+		var idRole []uint
+		for _, role := range userRoles {
+			idRole = append(idRole, role.ID)
+		}
 		var rolePerm models.RolePermission
 
-		if err := db.Where("role_id IN ? AND permission_id = ?", id_role, perm.ID).First(&rolePerm).Error; err != nil {
+		if err := db.Where("role_id IN ? AND permission_id = ?", idRole, perm.ID).First(&rolePerm).Error; err != nil {
 			ctx.JSON(http.StatusOK, gin.H{
 				"result": "false",
 			})
@@ -128,15 +137,33 @@ func GetFileJsonData(db *gorm.DB) func(ctx *gin.Context) {
 			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		rolePermissionMap := make(map[uint][]dto.PermissionDto)
+		//rolePermissionMap := make(map[uint][]dto.PermissionDto)
+		//for _, rp := range result {
+		//	var perm models.Permission
+		//	if err := db.Where("id = ?", rp.PermissionId).First(&perm).Error; err != nil {
+		//		continue
+		//	}
+		//	rolePermissionMap[rp.RoleId] = append(rolePermissionMap[rp.RoleId], dto.ToPermissionDto(perm))
+		//}
+		// Updated rolePermissionMap to a nested map structure
+		rolePermissionMap := make(map[uint]map[string]map[string]bool)
 		for _, rp := range result {
 			var perm models.Permission
 			if err := db.Where("id = ?", rp.PermissionId).First(&perm).Error; err != nil {
 				continue
 			}
-			rolePermissionMap[rp.RoleId] = append(rolePermissionMap[rp.RoleId], dto.ToPermissionDto(perm))
-		}
 
+			// Initialize the nested map if it doesn't exist
+			if rolePermissionMap[rp.RoleId] == nil {
+				rolePermissionMap[rp.RoleId] = make(map[string]map[string]bool)
+			}
+			if rolePermissionMap[rp.RoleId][perm.Method] == nil {
+				rolePermissionMap[rp.RoleId][perm.Method] = make(map[string]bool)
+			}
+
+			// Set the permission with the URL as the key
+			rolePermissionMap[rp.RoleId][perm.Method][perm.Url] = true
+		}
 		response := ResponseData{
 			userRoleMap, rolePermissionMap,
 		}
@@ -176,7 +203,12 @@ func GetFileJsonData(db *gorm.DB) func(ctx *gin.Context) {
 	}
 }
 
+//type ResponseData struct {
+//	UseRoles   map[string][]uint            `json:"user_roles"`
+//	RoleGrants map[uint][]dto.PermissionDto `json:"role_grants"`
+//}
+
 type ResponseData struct {
-	UseRoles   map[string][]uint            `json:"user_roles"`
-	RoleGrants map[uint][]dto.PermissionDto `json:"role_grants"`
+	UserRoles  map[string][]uint                   `json:"user_roles"`
+	RoleGrants map[uint]map[string]map[string]bool `json:"role_grants"`
 }
