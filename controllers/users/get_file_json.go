@@ -2,10 +2,6 @@ package users
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-	"net/http"
-	"opa-test/models"
 	"os"
 )
 
@@ -29,25 +25,26 @@ type ResponseDataOPA struct {
 	Role     string `json:"role"`
 }
 
-func GetFileJson(db *gorm.DB) func(ctx *gin.Context) {
-	return func(ctx *gin.Context) {
-		var result []models.User
-		if err := db.Find(&result).Error; err != nil {
-			ctx.JSONP(400, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		var modifiedDatas []ResponseDataOPA
-		for _, i := range result {
-			res := ResponseDataOPA{
-				Name:     i.Name,
-				EndPoint: i.EndPoint,
-				Role:     i.Role,
-			}
-			modifiedDatas = append(modifiedDatas, res)
-		}
-		ctx.JSON(http.StatusOK, modifiedDatas)
-		WriteJsonToFile(modifiedDatas, "bundle/data/data.json")
-	}
-}
+//
+//func GetFileJson(db *gorm.DB) func(ctx *gin.Context) {
+//	return func(ctx *gin.Context) {
+//		var result []models.Auth
+//		if err := db.Find(&result).Error; err != nil {
+//			ctx.JSONP(400, gin.H{
+//				"error": err.Error(),
+//			})
+//			return
+//		}
+//		var modifiedDatas []ResponseDataOPA
+//		for _, i := range result {
+//			res := ResponseDataOPA{
+//				Name:     i.Name,
+//				EndPoint: i.EndPoint,
+//				Role:     i.Role,
+//			}
+//			modifiedDatas = append(modifiedDatas, res)
+//		}
+//		ctx.JSON(http.StatusOK, modifiedDatas)
+//		WriteJsonToFile(modifiedDatas, "bundle/data/data.json")
+//	}
+//}

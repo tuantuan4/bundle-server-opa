@@ -8,7 +8,7 @@ import (
 
 func CreateUser(db *gorm.DB) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		var user models.User
+		var user models.Auth
 		err := ctx.BindJSON(&user)
 		if err != nil {
 			ctx.JSON(400, gin.H{

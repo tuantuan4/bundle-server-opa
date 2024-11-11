@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"opa-test/controllers/RolePerm"
@@ -9,6 +10,7 @@ import (
 	"opa-test/controllers/roles"
 	"opa-test/controllers/users"
 	"opa-test/middleware"
+	"time"
 )
 
 func DefineRouter(r *gin.Engine, db *gorm.DB) {
@@ -18,7 +20,7 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 		//v.GET("/targz", controllers.GetFileTarGz(db)) //ver1
 		v.GET("/targz", users.NotifyUpdate(db)) //ver2
 		v.POST("/user", users.CreateUser(db))
-		v.GET("/user", users.GetAllUser(db))
+		v.GET("/users", users.GetAllUser(db))
 
 	}
 	role := v.Group("/roles")
@@ -54,6 +56,15 @@ func DefineRouter(r *gin.Engine, db *gorm.DB) {
 
 func Init(db *gorm.DB) {
 	r := gin.Default()
+	// Add CORS middleware before defining any routes
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:8889"},        // Allow requests from http://localhost:8889
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"}, // HTTP methods to allow
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	DefineRouter(r, db)
 	r.Run()
 }

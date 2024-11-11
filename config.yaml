@@ -1,0 +1,18 @@
+# ./opa run --server --log-level debug --config-file config.yaml
+services:
+  - name: bundle-server
+    url: http://localhost:8080/api/v1/admin/
+bundles:
+  bundle-server:
+    service: bundle-server
+    resource: targz
+    persist: true
+    polling:
+      long_polling_timeout_seconds: 20
+#      min_delay_seconds: 5
+#      max_delay_seconds: 10
+caching:
+  inter_query_builtin_cache:
+    max_size_bytes: 100000000
+    forced_eviction_threshold_percentage: 70
+    stale_entry_eviction_period_seconds: 30
