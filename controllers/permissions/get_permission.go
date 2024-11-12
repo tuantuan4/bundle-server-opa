@@ -12,6 +12,8 @@ func GetAllPerm(db *gorm.DB) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		pageSize := ctx.DefaultQuery("pageSize", "10")
 		pageNum := ctx.DefaultQuery("pageNum", "1")
+		url := ctx.Query("url")       // Retrieve the "url" parameter
+		method := ctx.Query("method") // Retrieve the "method" parameter
 		// Convert parameters to integers
 		pageSizeInt, err := strconv.Atoi(pageSize)
 		if err != nil || pageSizeInt <= 0 {
@@ -26,8 +28,14 @@ func GetAllPerm(db *gorm.DB) func(ctx *gin.Context) {
 		}
 		offset := (pageNumInt - 1) * pageSizeInt
 		var result []models.Permission
-
-		if err := db.Limit(pageSizeInt).Offset(offset).Find(&result).Error; err != nil {
+		query := db.Model(&models.Permission{})
+		if url != "" {
+			query = query.Where("url LIKE ?", "%"+url+"%")
+		}
+		if method != "" {
+			query = query.Where("method = ?", method)
+		}
+		if err := query.Limit(pageSizeInt).Offset(offset).Find(&result).Error; err != nil {
 			ctx.JSONP(400, gin.H{
 				"error": err.Error(),
 			})
@@ -35,7 +43,7 @@ func GetAllPerm(db *gorm.DB) func(ctx *gin.Context) {
 		}
 
 		var total int64
-		if err := db.Model(&models.Permission{}).Count(&total).Error; err != nil {
+		if err := query.Model(&models.Permission{}).Count(&total).Error; err != nil {
 			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}

@@ -12,6 +12,7 @@ func GetAllRole(db *gorm.DB) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		pageSize := ctx.DefaultQuery("pageSize", "10")
 		pageNum := ctx.DefaultQuery("pageNum", "1")
+		name := ctx.Query("name")
 		// Convert parameters to integers
 		pageSizeInt, err := strconv.Atoi(pageSize)
 		if err != nil || pageSizeInt <= 0 {
@@ -27,14 +28,19 @@ func GetAllRole(db *gorm.DB) func(ctx *gin.Context) {
 
 		offset := (pageNumInt - 1) * pageSizeInt
 		var result []models.Role
-		// Apply limit and offset for pagination
-		if err := db.Limit(pageSizeInt).Offset(offset).Find(&result).Error; err != nil {
+		// Build the query with optional name filter
+		query := db.Model(&models.Role{})
+		if name != "" {
+			query = query.Where("name LIKE ?", "%"+name+"%")
+		}
+
+		if err := query.Limit(pageSizeInt).Offset(offset).Find(&result).Error; err != nil {
 			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 		// Query for the total count of roles
 		var total int64
-		if err := db.Model(&models.Role{}).Count(&total).Error; err != nil {
+		if err := query.Model(&models.Role{}).Count(&total).Error; err != nil {
 			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
