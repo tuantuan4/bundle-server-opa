@@ -18,7 +18,7 @@ func GetUserRole(db *gorm.DB) func(ctx *gin.Context) {
 		pageNum := ctx.DefaultQuery("pageNum", "1")
 		email := ctx.Query("email")
 		username := ctx.Query("username")
-		// Convert parameters to integers
+
 		pageSizeInt, err := strconv.Atoi(pageSize)
 		if err != nil || pageSizeInt <= 0 {
 			ctx.JSON(400, gin.H{"error": "Invalid pageSize"})
@@ -32,14 +32,6 @@ func GetUserRole(db *gorm.DB) func(ctx *gin.Context) {
 		}
 
 		offset := (pageNumInt - 1) * pageSizeInt
-
-		//if email == "" || username == "" {
-		//	ctx.JSON(400, gin.H{
-		//		"error": "email and username are required",
-		//	})
-		//	return
-		//}
-
 		var listUserRole []models.UserRole
 		query := db.Model(&models.UserRole{})
 		if email != "" {
@@ -48,13 +40,12 @@ func GetUserRole(db *gorm.DB) func(ctx *gin.Context) {
 		if username != "" {
 			query = query.Where("username = ?", username)
 		}
-		if err := query.Limit(pageSizeInt).Offset(offset).Find(&listUserRole).Error; err != nil {
+		if err := query.Find(&listUserRole).Error; err != nil {
 			ctx.JSONP(400, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
-
 		userRoleMap := make(map[string][]uint)
 		for _, rp := range listUserRole {
 			userRoleMap[rp.Username] = append(userRoleMap[rp.Username], rp.RoleId)
@@ -67,11 +58,20 @@ func GetUserRole(db *gorm.DB) func(ctx *gin.Context) {
 				ListRole: roles,
 			})
 		}
+
+		// Apply offset and limit on the response
+		start := offset
+		end := start + pageSizeInt
+		if end > len(response) {
+			end = len(response)
+		}
+
 		ctx.JSON(200, gin.H{
 			"result": gin.H{
-				"data":  response,
+				"data":  response[start:end],
 				"total": len(response),
 			},
+			"status": true,
 		})
 	}
 }

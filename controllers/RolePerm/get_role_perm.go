@@ -104,11 +104,50 @@ func GetListPermByRoleId(db *gorm.DB) func(ctx *gin.Context) {
 
 func GetAll(db *gorm.DB) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
+		// Lấy role_id từ query string
+		roleId := ctx.Query("role_id")
+		pageSize := ctx.DefaultQuery("pageSize", "10")
+		pageNum := ctx.DefaultQuery("pageNum", "1")
+
+		// Chuyển pageSize và pageNum sang kiểu số
+		pageSizeInt, err := strconv.Atoi(pageSize)
+		if err != nil || pageSizeInt <= 0 {
+			ctx.JSON(400, gin.H{"error": "Invalid pageSize"})
+			return
+		}
+
+		pageNumInt, err := strconv.Atoi(pageNum)
+		if err != nil || pageNumInt <= 0 {
+			ctx.JSON(400, gin.H{"error": "Invalid pageNum"})
+			return
+		}
+
+		// Tính toán offset
+		offset := (pageNumInt - 1) * pageSizeInt
+
+		// Tạo biến result chứa danh sách RolePermission
 		var result []models.RolePermission
-		if err := db.Find(&result).Error; err != nil {
+		query := db.Model(&models.RolePermission{})
+
+		// Nếu có role_id trong query, thêm điều kiện vào query
+		if roleId != "" {
+			// Chuyển roleId sang kiểu uint
+			roleIdUint, err := strconv.ParseUint(roleId, 10, 32)
+			if err != nil {
+				ctx.JSON(400, gin.H{"error": "Invalid role_id"})
+				return
+			}
+			// Thêm điều kiện lọc theo role_id
+			query = query.Where("role_id = ?", uint(roleIdUint))
+		}
+
+		// Truy vấn tất cả dữ liệu mà không có limit và offset
+		if err := query.Find(&result).Error; err != nil {
 			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+
+		// Map để lưu trữ quyền theo role_id
 		rolePermissionMap := make(map[uint][]models.Permission)
 		for _, rp := range result {
 			var perm models.Permission
@@ -117,7 +156,38 @@ func GetAll(db *gorm.DB) func(ctx *gin.Context) {
 			}
 			rolePermissionMap[rp.RoleId] = append(rolePermissionMap[rp.RoleId], perm)
 		}
-		ctx.JSON(200, gin.H{"data": rolePermissionMap})
+
+		// Tạo slice chứa các response với cấu trúc {role_id, list_permission}
+		var response []gin.H
+		for roleId, permissions := range rolePermissionMap {
+			// Tạo list_permission từ dữ liệu permissions
+			var listPermissions []string
+			for _, perm := range permissions {
+				listPermissions = append(listPermissions, fmt.Sprintf("%s,%s", perm.Url, perm.Method))
+			}
+
+			// Thêm vào response
+			response = append(response, gin.H{
+				"role_id":         roleId,
+				"list_permission": listPermissions,
+			})
+		}
+
+		// Giới hạn số lượng kết quả trong response
+		start := offset
+		end := start + pageSizeInt
+		if end > len(response) {
+			end = len(response)
+		}
+
+		// Trả về kết quả với tổng số phần tử và các phần tử đã được phân trang
+		ctx.JSON(200, gin.H{
+			"result": gin.H{
+				"data":  response[start:end],
+				"total": len(response),
+			},
+			"status": true,
+		})
 	}
 }
 
