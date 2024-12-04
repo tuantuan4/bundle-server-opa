@@ -17,6 +17,19 @@ func CreateRolePerm(db *gorm.DB) func(ctx *gin.Context) {
 			ctx.JSON(400, gin.H{"error": "invalid role or permission id"})
 			return
 		}
+
+		var roleTemp models.Role
+		if err := db.First(&roleTemp, role).Error; err != nil {
+			ctx.JSON(404, gin.H{"error": "Role not found"})
+			return
+		}
+
+		var permission models.Permission
+		if err := db.First(&permission, perm).Error; err != nil {
+			ctx.JSON(404, gin.H{"error": "Permission not found"})
+			return
+		}
+
 		var rolePerm models.RolePermission
 		rolePerm.RoleId = uint(role)
 		rolePerm.PermissionId = uint(perm)

@@ -52,7 +52,7 @@ func GetRolePerm(db *gorm.DB) func(ctx *gin.Context) {
 		}
 		var idRole []uint
 		for _, role := range userRoles {
-			idRole = append(idRole, role.ID)
+			idRole = append(idRole, role.RoleId)
 		}
 		var rolePerm models.RolePermission
 
